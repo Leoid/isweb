@@ -27,3 +27,8 @@ b1twis3 - https://twitter.com/fasthm00
 
 ### Demo
 ![alt](assets/demo.png)
+
+### pure-line inspiration
+This repository is inspired by https://github.com/tomnomnom/httprobe.
+
+And the code of this repository is based on https://www.boost.org/ docs.
