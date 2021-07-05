@@ -1,5 +1,5 @@
-# isweb++
-### Fast & Lightweight HTTP/s checker
+ <h1 align="center">isweb++<br>Fast & Lightweight HTTP/s checker</h1>
+
 
 ### Usage
 ```
@@ -26,4 +26,4 @@ Any comment, issue or pull request will be highly appreciated :)
 b1twis3 - https://twitter.com/fasthm00
 
 ### Demo
-![alt](demo.png)
+![alt](assets/demo.png)
