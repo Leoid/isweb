@@ -14,6 +14,8 @@
 #include <pthread.h>
 #include <functional>
 #include <memory>
+#include <atomic>
+#include <mutex>
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
 namespace http = beast::http;   // from <boost/beast/http.hpp>
@@ -23,7 +25,8 @@ using namespace std;
 using tcp = net::ip::tcp; // from <boost/asio/ip/tcp.hpp>
 using boost::asio::ip::tcp;
 
-#define NUM_THREADS 50
+#define NUM_THREADS 100
+std::mutex req_mutex;
 
 struct Domain
 {
@@ -168,7 +171,9 @@ private:
                     http::status status_code = res.result();
 
                     // cout << "[+] https://" << this->server_ << endl;
+                    req_mutex.lock();
                     printf("[+] https://%s\n", this->server_.c_str());
+                    req_mutex.unlock();
                 }
 
                 // If we get here then the connection is closed gracefully
@@ -208,7 +213,9 @@ private:
             response_stream >> status_code;
             std::string status_message;
             std::getline(response_stream, status_message);
+            req_mutex.lock();
             cout << "[+] http://" << this->server_ << " - Status Code: " << status_code << endl;
+            req_mutex.unlock();
             //   cout<< "status code: " << status_code << endl;
         }
         // else
@@ -237,19 +244,25 @@ vector<Domain> split_vec(vector<Domain> domains, size_t start, size_t size, size
             temp.push_back(domains[i]);
         }
     }
+    // cout << "temp size: " << temp.size() << endl;
     return temp;
 }
-
+std::atomic <unsigned int> g_thread(0);
 void *is_web(void *d1)
 {
     vector<Domain> *domains_vector = (vector<Domain> *)d1;
     // printf("vec size: %d\n", domains_vector->size());
     for (auto d : *domains_vector)
     {
+        
+        // cout << "Printing Start Host: " << d.host << endl;
+        // std::this_thread::sleep_for (std::chrono::seconds(3));
+        // cout << "Printing End Host: " << d.host << endl;
+
         string sub_host = d.host;
         string port = d.port;
 
-        // cout << sub_host << endl;
+        // cout << "test: " << sub_host << endl;
         auto const target = "/";
         int version = 11;
         try
@@ -262,15 +275,19 @@ void *is_web(void *d1)
                 target);
 
             // Run
+            // req_mutex.lock();
             io_service.run();
+            // req_mutex.unlock();
             
         }
         catch (std::exception const &e)
         {
             // printf("[-] \t%s - %s\n", sub_host.c_str(), e.what());
         }
-        pthread_exit(NULL);
+        // pthread_exit(NULL);
+        g_thread++;
     }
+    
 }
 
 int main(int argc, char **argv)
@@ -303,18 +320,41 @@ int main(int argc, char **argv)
     int current_index = 0;
     int chunk_end = chunk_size;
 
-    // vector <vector<Domain>> m_vec;
+    vector <vector<Domain>> m_vec;
+
     for (size_t i = 0; i < NUM_THREADS; i++)
     {
-        // printf("%d - %d - %d\n",i,current_index,chunk_end-1);
+        // printf("%d: %d - %d\n",i,current_index,chunk_end-1);
         current_index += chunk_size;
         chunk_end += chunk_size;
         vector<Domain> temp;
         temp = split_vec(domains, current_index, chunk_end - 1, domains.size());
-        rc = pthread_create(&threads[i], NULL, is_web, &temp);
-        pthread_join(threads[i], NULL);
-    }
+        m_vec.push_back(temp);
+       
+        // printf("joinable? %s\n",chunk.joinable()?"true":"false");
 
-    pthread_exit(NULL);
+        // cout << "Testing start.." << endl;
+        // printf("joinable? %s\n",chunk.joinable()?"true":"false");
+        // std::this_thread::sleep_for (std::chrono::seconds(3));
+        // cout << "Testing End.." << endl;
+        // rc = pthread_create(&threads[i], NULL, is_web, &temp);
+        // pthread_join(threads[i], NULL);
+        // chunk.join();
+       
+    }
+    for (size_t i = 0; i < m_vec.size(); i++)
+    {
+        std::thread chunk(is_web,&m_vec[i]);
+        chunk.detach();
+    }
+    
+
+
+
+    while(g_thread != domains.size()){
+        g_thread.load();
+    }
+    
+    // pthread_exit(NULL);
     return EXIT_SUCCESS;
 }
