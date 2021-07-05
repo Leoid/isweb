@@ -12,7 +12,7 @@ Usage: isweb++ [host file]
      - Easy to use
 
 #### TODO:
-     - [ ] "Just create a new issue and you'll suggestion will be welcomed!"
+     - [ ] "Just create a new issue and your suggestion will be welcomed!"
 
 #### Build:
 ```
@@ -26,4 +26,4 @@ Any comment, issue or pull request will be highly appreciated :)
 b1twis3 - https://twitter.com/fasthm00
 
 ### Demo
-![alt](image.png)
+![alt](demo.png)
