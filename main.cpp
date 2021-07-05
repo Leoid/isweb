@@ -1,3 +1,8 @@
+/*
+ * isweb++
+ *
+ * Created by b1twsi3
+ */
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
